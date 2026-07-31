@@ -106,6 +106,22 @@ FROM (
 SELECT SUM(Quantity * UnitPrice) AS GrandTotal
 FROM orders;
 
+-- Q11: Returns as a % of gross sales, by country
+-- GrossSales = positive-quantity transactions only (the correct denominator)
+-- ReturnsValue = negative-quantity transactions only
+-- Countries with very low GrossSales produce volatile percentages -- read with caution
+SELECT
+    Country,
+    SUM(CASE WHEN Quantity > 0 THEN Quantity * UnitPrice ELSE 0 END) AS GrossSales,
+    SUM(CASE WHEN Quantity < 0 THEN Quantity * UnitPrice ELSE 0 END) AS ReturnsValue,
+    ROUND(
+        SUM(CASE WHEN Quantity < 0 THEN Quantity * UnitPrice ELSE 0 END) * -100.0
+        / SUM(CASE WHEN Quantity > 0 THEN Quantity * UnitPrice ELSE 0 END), 2
+    ) AS ReturnsPercentage
+FROM orders
+GROUP BY Country
+ORDER BY ReturnsPercentage DESC;
+
 -- Supporting checks used to verify dataset stats for the README
 SELECT COUNT(*) FROM orders;                          -- total row count
 SELECT MIN(InvoiceDate), MAX(InvoiceDate) FROM orders; -- date range covered
